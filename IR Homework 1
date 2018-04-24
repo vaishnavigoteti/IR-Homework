@@ -1,0 +1,166 @@
+/*
+INFORMATION RETRIEVAL HOMEWORK 1
+NAME: VAISHNAVI GOTETI
+*/
+import java.io.*;
+import java.lang.*;
+import java.util.*;
+public class InfoRetrieval
+{
+  public static void main(String[] args)
+  {
+    File folder= new File("C:\\IR\transcripts");
+    String obj = new String("");
+    int totalN = 0; //total number of documents or transcripts
+    int tf = 0; //term frequency
+    int df = 0; //document frequency
+    double idf = 0.00; //inverse document frequency
+    int numOfWordsperDoc = 0;
+    int wordOccuranceOnce = 0;
+    Map<String, Integer> docFreqMap = new HashMap<String, Integer>(); //stores the document frequencies of individual words
+    List<Integer> listofNumofWords = new ArrayList<Integer>();//List of number of words per document
+    List<String> listOfStringsOfEachDoc = new ArrayList<String>();//Holds the list of Strings of all documents separately
+    List<String> listOfStopwords = new ArrayList<String>();
+    StringBuilder databaseOfWords = new StringBuilder(""); //databaseOfWords consists of words from all the files
+    List<String> databaseListOfwords = new ArrayList<String>();
+    String currentline;
+    if(folder.exists()){
+      String[] listOfFiles = folder.list();
+      totalN = listOfFiles.length;  //Number of total documents in the Database
+      for(String s:listOfFiles){
+        BufferedReader br = new BufferedReader(new FileReader(s));
+        String temp; 
+        while((currentline = br.readLine())!= null){
+          databaseOfWords.append(currentline.toLowerCase()); //storing all Strings of all documents   
+          databaseOfWords.append(" "); 
+          temp = temp+currentline.toLowerCase();
+        }
+        listOfStringsOfEachDoc.add(temp);
+        temp=""; //clears the temporary string each time;
+      }
+    }
+    //Removing Special Characters 
+    databaseOfWords.toString().replaceAll("[^a-zA-Z0-9]","");
+    //Removing Special Characters from all the docs
+    String currString;
+    for(int i=0; i<listOfStringsOfEachDoc.size(); i++){
+      currString = listOfStringsOfEachDoc.get(i);
+      currString.replaceAll("[^a-zA-Z0-9]","");
+      listOfStringsOfEachDoc.set(i,currString);
+    }
+    //Creating list of Stop words
+    String[] stopwords = { "a","about","again","all","almost","also","although","always","among","an","and","another","an","any","are","as","at",
+                         "it","its","itself","just","kg","km","made","mainly","make","may","mg","might","ml","mm","most","mostly","these","they",
+                         "this","those","through","thus","to","upon","use","used","using","various","very","was","we","were"};
+    listOfStopwords.addAll(Arrays.asList(stopwords));
+    String[] words = databaseOfWords.toString().split(" "); 
+      for(String s : words) {
+        databaseListOfwords.add(s.trim());
+    }
+    //Removing Stopwords
+      Iterator<String> stopwordIterator = listOfStopwords.iterator();
+		while (stopwordIterator.hasNext()) {
+          String stopword = stopwordIterator.next();
+          if(databaseListOfwords.contains(stopword)){
+            databaseListOfwords.remove(stopword);
+          }
+		}
+    //Removing Stopwords from all the docs
+     for(int i=0; i<listOfStringsOfEachDoc.size(); i++){
+      String str = listOfStringsOfEachDoc.get(i);
+       while (stopwordIterator.hasNext()) {
+          String stopword = stopwordIterator.next();
+          if(str.contains(stopword)){
+           str.replace(stopword,"");
+          }
+		}
+       listOfStringsOfEachDoc.set(i,str);
+    }
+    /*We are aware that the Porter Stemming ALgorithm doesnot reduce the number of words.
+     Therefore, the number of words per document can be computed as follows
+    */
+    for(int i=0; i<listOfStringsOfEachDoc.size(); i++){
+      String[] wordsPerDoc = listOfStringsOfEachDoc.get(i).split(" "); 
+      numOfWordsperDoc = wordsPerDoc.length;
+      listofNumofWords.add(numOfWordsperDoc);
+      wordsPerDoc = null;
+    }       
+      	//Stemming of the database words
+      	PorterStemmer stemmer = new PorterStemmer();
+             for(int i=0;i<databaseListOfwords.size();i++){
+               String dbword = databaseListOfwords.get(i);
+               stemmer.setCurrent(dbword); //set string you need to stem
+			   stemmer.stem();  //stem the word
+			   String stemmedWord = stemmer.getCurrent();//get the stemmed word
+            	if(!dbword.equalsIgnorecase(stemmedWord)) //for all the words that have been stemmed
+            	databaseListOfwords.set(i,stemmedWord);
+             }
+     	 //total number of words after TEXT TRANSFORMATION in the database
+             int totalNumOfWords = databaseListOfwords.size();
+             System.out.println("total number of words in the database is: "+totalNumOfWords);
+    	    
+         //number of unique words in the database
+             Set<String> setOfUniqueWords = new Hashset<String>(databaseListOfwords);
+             System.out.println("number of UNIQUE words in the database is: "+setOfUniqueWords.size());
+             
+    	 //Number of words that occur only once in the database
+    		Hashmap<String, Integer> frequencyMap = new HashMap<String, Integer>();//A map that stores the strings and respective frequencies
+    		for(int i=0; i<setOfUniqueWords.size();i++){
+      			int frequency = Collections.frequency(databaseListOfwords, setOfUniqueWords.get(i));//frequency of each element of the list
+              	frequencyMap.put(setOfUniqueWords.get(i),frequency);
+              	if(frequency == 1){
+                  wordOccuranceOnce ++;
+            	}
+            }
+    		System.out.println("Number of words that occur only once in the database: "+wordOccuranceOnce);
+         //Average number of word tokens per document
+    		double sum = 0;
+    		for (Integer n : listofNumofWords) {
+                  sum += n;
+            }  
+    		System.out.println("Average number of tokens per doc: "+sum/listofNumofWords.size());
+    
+    	//30 most frequently occuring words in the database
+    	/*Code to sort frequencyMap by values in Descending order begins */
+    	List<String> topThirtywords = new ArrayList<String>();//stores the list of top 30 most frequently occuring words.
+    	Set<Entry<String, Integer>> set = frequencyMap.entrySet();
+        List<Entry<String, Integer>> list = new ArrayList<Entry<String, Integer>>(set);
+        Collections.sort( list, new Comparator<Map.Entry<String, Integer>>()
+        {
+            public int compare( Map.Entry<String, Integer> o1, Map.Entry<String, Integer> o2 )
+            {
+                return (o1.getValue()).compareTo( o2.getValue() );
+            }
+        } );
+    	for(Map.Entry<String, Integer> entry:list){
+          	topThirtywords.add(entry.getKey());
+          if(topThirtywords.size()>30){
+            break;
+          }
+        }
+    	/*Code to sort frequencyMap by values ends */
+    //COMPUTING TF, IDF, TFXIDF VALUES
+    //computing df values and storing it in docFreqMap 
+    for(int i=0;i<topThirtywords.size();i++){
+      for(int j=0; j < listOfStringsOfEachDoc.size();j++){
+        if(listOfStringsOfEachDoc.get(j).contains(topThirtywords.get(i))){
+          df++;   //Computation of document frequency, the number documents in which the term occured
+        }
+      }
+     docFreqMap.put(topThirtywords.get(i),df); 
+      df = 0; //reset df after computation for each word
+    }
+    System.out.println("Unique word         TF          IDF           TF*IDF "); //Header of the Table
+    for(int i=0;i<topThirtywords.size();i++){
+      for(int j=0; j < listOfStringsOfEachDoc.size();j++){
+        tf = StringUtils.countMatches(listOfStringsOfEachDoc.get(j), topThirtywords.get(i));//Computation of term frequency of each word per doc
+        df = docFreqMap.get(topThirtywords.get(i));
+     	idf = Math.log10(totalN/df);  //Computation of inverse document frequency
+      	System.out.println(topThirtywords.get(i)+" "+tf+"   "+idf+"    "+(tf*idf));
+        //reseting the values after computation of tf and idf for each word
+        tf = 0;
+        idf = 0.00;
+      }
+    }
+  }
+}
