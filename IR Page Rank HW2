@@ -1,0 +1,90 @@
+import java.lang.Math; 
+
+import java.util.Arrays;
+public class MatrixRank
+{
+  public static void main(String[] args)
+  {
+    MatrixRank Arr = new MatrixRank();
+        Arr.createArray();
+  }
+    
+  public void createArray(){
+     double[][]  A  =  {  {0,0,0,0,0,0},{1,0,0.33,0.33,0.25,0},{0,0.33,0,0.33,0.25,0},
+      					{0,0.33,0.33,0,0.25,0},{0,0.33,0.33,0.33,0,0},{0,0,0,0,0.25,0}
+               };     // Adjacency Matrix A
+    
+    
+     double[][] B = {{1,1,1,1,1,1},{1,1,1,1,1,1},{1,1,1,1,1,1},
+      				{1,1,1,1,1,1},{1,1,1,1,1,1},{1,1,1,1,1,1}
+   				 };
+    
+    double[][] M = new double[6][6];
+    
+    double [][] V = {{0.1667},{0.1667},{0.1667},{0.1667},{0.1667},{0.1667}};
+    
+    double[][] R = new double[6][1]; 
+    
+    double [][] vi = new double[6][1]; 
+    double [][] vj= new double[6][1]; 
+    int k = 0;
+    
+    System.out.println("Page Rank Matrix M: ");
+    System.out.println(" M = 0.85A + 0.15*(1/n)*B ");
+    for(int i=0;i<6;i++){
+      for(int j=0;j<6;j++){
+        M[i][j]=0.85*A[i][j] + 0.15*(1/6)*B[i][j];
+        System.out.print(M[i][j]+"     ");   //COmputation of Page Rank Matrix M
+      }  
+      System.out.println(" ");
+    }
+    
+    System.out.println("Original Rank Vector rj: ");
+    for(int i=0;i<6;i++){
+      System.out.println(V[i][0]+"     "); 
+    }
+    
+    vi = Arrays.copyOf(V,V.length);
+    do{
+      vj = Arrays.copyOf(vi,vi.length);
+      vi = rankMatrix(M,vj);
+      k++;
+      if(matrixequality(vi,vj)){
+        break;
+      }
+      System.out.println("iteration: "+(k));
+      
+       for(int i=0;i<6;i++){
+ 	System.out.println(vi[i][0]);
+    }
+      
+    }while(k<100);
+    System.out.println("success");
+    
+    System.out.println("No of iterations: "+k);
+  }
+  
+  public double[][] rankMatrix(double[][] M,double [][]v){
+     double[][] R = new double[6][1];
+    for(int i=0;i<6;i++){
+    	for(int j=0;j<6;j++){
+          R[i][0]+=M[i][j]*v[j][0];
+        }
+    }
+    return R;
+  }
+  
+  public boolean matrixequality(double[][] A, double[][] B)
+{
+    double a = 0;
+    double b = 0;
+  for(int i=0;i<6;i++){
+    a = (double) Math.round(A[i][0]*10000)/10000;
+    b = (double) Math.round(B[i][0]*10000)/10000;
+    
+    if(a!=b){return false;}
+  }
+  return true;
+}
+}
+
